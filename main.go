@@ -17,22 +17,27 @@ func main() {
 		Authors:  []*cli.Author{{Name: "Andrey Kiselev", Email: "omega-faworit@yandex.ru"}},
 		Commands: []*cli.Command{
 			{
+				Name:   "init",
+				Usage:  "Initialize config",
+				Action: cmd.HandleInit,
+			},
+			{
 				Name:      "add",
 				Usage:     "Add file for syncing",
 				ArgsUsage: "[file]",
+				Flags:     []cli.Flag{&cli.StringFlag{Name: "name", Usage: "Name which will be used as ID of file"}},
 				Action:    cmd.HandleAdd,
 			},
 			{
-				Name:  "sync",
-				Usage: "Sync files",
-				Action: func(c *cli.Context) error {
-					return nil
-				},
+				Name:   "sync",
+				Usage:  "Sync files",
+				Action: cmd.HandleSync,
 			},
 			{
-				Name:   "remove",
-				Usage:  "Remove file from syncing",
-				Action: cmd.HandleRemove,
+				Name:      "remove",
+				Usage:     "Remove file from syncing",
+				ArgsUsage: "[id or file]",
+				Action:    cmd.HandleRemove,
 			},
 		},
 	}

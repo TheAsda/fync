@@ -9,21 +9,32 @@ import (
 )
 
 func HandleRemove(context *cli.Context) error {
-	file := context.Args().Get(0)
-	if len(file) == 0 {
+	fileOrId := context.Args().Get(0)
+	if len(fileOrId) == 0 {
 		return errors.New("File is not provided")
 	}
 	config, err := lib.GetConfig()
 	if err != nil {
 		return err
 	}
-	absPath, err := filepath.Abs(file)
+	files, err := lib.GetFiles(config.GetFilesPath())
 	if err != nil {
 		return err
 	}
-	err = config.RemoveFile(absPath)
+	if files.Exists(fileOrId) {
+		return files.RemoveFile(fileOrId)
+	}
+	filePath, err := filepath.Abs(fileOrId)
 	if err != nil {
 		return err
 	}
-	return lib.SaveConfig(config)
+	err = files.RemoveByPath(filePath)
+	if err != nil {
+		return err
+	}
+	if !config.SyncOnAction {
+		return nil
+	}
+	println("Syncing")
+	return nil
 }

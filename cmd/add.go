@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"crypto/sha1"
 	"errors"
 	"path/filepath"
 	"theasda/fync/lib"
@@ -13,17 +14,34 @@ func HandleAdd(context *cli.Context) error {
 	if len(file) == 0 {
 		return errors.New("File is not provided")
 	}
+	filePath, err := filepath.Abs(file)
+	if err != nil {
+		return err
+	}
 	config, err := lib.GetConfig()
 	if err != nil {
 		return err
 	}
-	absPath, err := filepath.Abs(file)
+	files, err := lib.GetFiles(config.GetFilesPath())
 	if err != nil {
 		return err
 	}
-	err = config.AddFile(absPath)
+	var id string
+	if name := context.String("name"); len(name) != 0 {
+		id = name
+	} else if name := filepath.Base(filePath); !files.Exists(name) {
+		id = filepath.Base(name)
+	} else {
+		hash := sha1.Sum([]byte(filePath))
+		id = string(hash[:])
+	}
+	err = files.AddFile(id, filePath)
 	if err != nil {
 		return err
 	}
-	return lib.SaveConfig(config)
+	if !config.SyncOnAction {
+		return nil
+	}
+	println("Syncing")
+	return nil
 }

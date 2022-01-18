@@ -1,5 +1,12 @@
 package lib
 
-func SaveFiles(files []string) error {
-	git.
-}
+// import (
+// 	"os"
+// )
+
+// func SaveFiles(files []string) error {
+// 	for _, file := range files {
+
+// 	}
+// 	os.Symlink()
+// }
