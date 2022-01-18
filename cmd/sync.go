@@ -13,5 +13,13 @@ func HandleSync(context *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	return lib.CommitFiles(*config)
+	files, err := lib.GetFiles(config.GetFilesPath())
+	if err != nil {
+		return err
+	}
+	list, err := files.GetFiles()
+	if err != nil {
+		return err
+	}
+	return lib.SyncFiles(list, *config)
 }

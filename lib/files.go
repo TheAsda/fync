@@ -72,3 +72,18 @@ func (f *Files) Exists(id string) bool {
 	var file *File
 	return f.db.Read(FilesCollectionName, id, &file) == nil
 }
+
+func (f *Files) GetFiles() (files []File, err error) {
+	strFiles, err := f.db.ReadAll(FilesCollectionName)
+	if err != nil {
+		return []File{}, err
+	}
+	for _, strFile := range strFiles {
+		var file File
+		if err := json.Unmarshal([]byte(strFile), &file); err != nil {
+			return []File{}, err
+		}
+		files = append(files, file)
+	}
+	return files, err
+}
