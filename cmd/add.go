@@ -39,9 +39,5 @@ func HandleAdd(context *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	if !config.SyncOnAction {
-		return nil
-	}
-	println("Syncing")
-	return nil
+	return lib.AddFile(id, filePath, *config)
 }

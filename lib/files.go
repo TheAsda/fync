@@ -16,7 +16,7 @@ type Files struct {
 	db *scribble.Driver
 }
 
-const filesCollectionName = "files"
+const FilesCollectionName = "files"
 
 func GetFiles(path string) (*Files, error) {
 	db, err := scribble.New(path, nil)
@@ -29,22 +29,22 @@ func GetFiles(path string) (*Files, error) {
 }
 
 func (f *Files) AddFile(id string, path string) error {
-	err := f.db.Read(filesCollectionName, id, &File{})
+	err := f.db.Read(FilesCollectionName, id, &File{})
 	if err == nil {
 		return errors.New("ID already exists")
 	}
-	return f.db.Write(filesCollectionName, id, File{
+	return f.db.Write(FilesCollectionName, id, File{
 		ID:   id,
 		Path: path,
 	})
 }
 
 func (f *Files) RemoveFile(id string) error {
-	return f.db.Delete(filesCollectionName, id)
+	return f.db.Delete(FilesCollectionName, id)
 }
 
 func (f *Files) RemoveByPath(path string) error {
-	strFiles, err := f.db.ReadAll(filesCollectionName)
+	strFiles, err := f.db.ReadAll(FilesCollectionName)
 	if err != nil {
 		return err
 	}
@@ -54,7 +54,7 @@ func (f *Files) RemoveByPath(path string) error {
 			return err
 		}
 		if file.Path == path {
-			return f.db.Delete(filesCollectionName, file.ID)
+			return f.db.Delete(FilesCollectionName, file.ID)
 		}
 	}
 	return errors.New("Cannot find file with specified path")
@@ -70,5 +70,5 @@ func (f *Files) UpdateFile(id string, path string) error {
 
 func (f *Files) Exists(id string) bool {
 	var file *File
-	return f.db.Read(filesCollectionName, id, &file) == nil
+	return f.db.Read(FilesCollectionName, id, &file) == nil
 }

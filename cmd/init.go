@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"errors"
 	"path/filepath"
 	"theasda/fync/lib"
 
@@ -10,16 +9,19 @@ import (
 )
 
 func HandleInit(context *cli.Context) error {
-	_, err := lib.GetConfig()
+	c, err := lib.GetConfig()
 	if err == nil {
-		return errors.New("Config already exists")
+		return lib.InitRepo(*c)
+		// return errors.New("Config already exists")
 	}
 	config, err := PromptConfig()
 	if err != nil {
 		return err
 	}
-	lib.SaveConfig(&config)
-	return nil
+	if err = lib.SaveConfig(&config); err != nil {
+		return err
+	}
+	return lib.InitRepo(config)
 }
 
 func PromptConfig() (lib.Config, error) {
