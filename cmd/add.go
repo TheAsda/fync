@@ -6,38 +6,48 @@ import (
 	"path/filepath"
 	"theasda/fync/lib"
 
+	"github.com/golobby/container/v3"
 	"github.com/urfave/cli/v2"
 )
 
 func HandleAdd(context *cli.Context) error {
 	file := context.Args().Get(0)
 	if len(file) == 0 {
-		return errors.New("File is not provided")
+		return errors.New("file is not provided")
 	}
-	filePath, err := filepath.Abs(file)
+	fullPath, err := filepath.Abs(file)
 	if err != nil {
 		return err
 	}
-	config, err := lib.GetConfig()
+	id, err := getId(fullPath, context.String("name"))
 	if err != nil {
 		return err
 	}
-	files, err := lib.GetFiles(config.GetFilesPath())
-	if err != nil {
+	var filesDb lib.FilesDB
+	if err := container.Resolve(&filesDb); err != nil {
 		return err
+	}
+	if err = filesDb.Add(lib.File{ID: id, Path: fullPath}); err != nil {
+		return err
+	}
+	return container.Call(func(repo lib.Repo) error {
+		return repo.CommitFiles()
+	})
+}
+
+func getId(path string, name string) (string, error) {
+	var filesDb lib.FilesDB
+	if err := container.Resolve(&filesDb); err != nil {
+		return "", err
 	}
 	var id string
-	if name := context.String("name"); len(name) != 0 {
+	if len(name) != 0 {
 		id = name
-	} else if name := filepath.Base(filePath); !files.Exists(name) {
+	} else if name := filepath.Base(path); !filesDb.Exists(name) {
 		id = filepath.Base(name)
 	} else {
-		hash := sha1.Sum([]byte(filePath))
+		hash := sha1.Sum([]byte(path))
 		id = string(hash[:])
 	}
-	err = files.AddFile(id, filePath)
-	if err != nil {
-		return err
-	}
-	return lib.AddFile(id, filePath, *config)
+	return id, nil
 }

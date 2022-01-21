@@ -28,6 +28,7 @@ require (
 require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d // indirect
 	github.com/go-git/go-git/v5 v5.4.2
+	github.com/golobby/container/v3 v3.1.1
 	github.com/manifoldco/promptui v0.9.0
 	github.com/nanobox-io/golang-scribble v0.0.0-20190309225732-aa3e7c118975
 	github.com/russross/blackfriday/v2 v2.0.1 // indirect

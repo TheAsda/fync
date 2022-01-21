@@ -5,21 +5,25 @@ import (
 
 	"theasda/fync/lib"
 
+	"github.com/golobby/container/v3"
 	"github.com/urfave/cli/v2"
 )
 
 func HandleSync(context *cli.Context) error {
-	config, err := lib.GetConfig()
-	if err != nil {
+	var filesDb lib.FilesDB
+	if err := container.Resolve(&filesDb); err != nil {
 		return err
 	}
-	files, err := lib.GetFiles(config.GetFilesPath())
-	if err != nil {
+	var filesProcessor lib.FilesProcessor
+	if err := container.Resolve(&filesProcessor); err != nil {
 		return err
 	}
-	list, err := files.GetFiles()
-	if err != nil {
+	if err := filesProcessor.Update(filesDb.GetAll()); err != nil {
 		return err
 	}
-	return lib.SyncFiles(list, *config)
+	var repo *lib.Repo
+	if err := container.Resolve(&repo); err != nil {
+		return err
+	}
+	return repo.CommitFiles()
 }

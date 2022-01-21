@@ -5,36 +5,30 @@ import (
 	"path/filepath"
 	"theasda/fync/lib"
 
+	"github.com/golobby/container/v3"
 	"github.com/urfave/cli/v2"
 )
 
 func HandleRemove(context *cli.Context) error {
 	fileOrId := context.Args().Get(0)
 	if len(fileOrId) == 0 {
-		return errors.New("File is not provided")
+		return errors.New("file is not provided")
 	}
-	config, err := lib.GetConfig()
-	if err != nil {
+	var filesDb lib.FilesDB
+	if err := container.Resolve(&filesDb); err != nil {
 		return err
 	}
-	files, err := lib.GetFiles(config.GetFilesPath())
-	if err != nil {
-		return err
-	}
-	if files.Exists(fileOrId) {
-		return files.RemoveFile(fileOrId)
+	if filesDb.Exists(fileOrId) {
+		return filesDb.Remove(fileOrId)
 	}
 	filePath, err := filepath.Abs(fileOrId)
 	if err != nil {
 		return err
 	}
-	err = files.RemoveByPath(filePath)
-	if err != nil {
+	if err = filesDb.RemoveByPath(filePath); err != nil {
 		return err
 	}
-	if !config.SyncOnAction {
-		return nil
-	}
-	println("Syncing")
-	return nil
+	return container.Call(func(repo lib.Repo) error {
+		return repo.CommitFiles()
+	})
 }

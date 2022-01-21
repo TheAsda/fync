@@ -1,11 +1,14 @@
 package main
 
 import (
+	"errors"
 	"log"
 	"os"
 	"theasda/fync/cmd"
+	"theasda/fync/lib"
 	"time"
 
+	"github.com/golobby/container/v3"
 	"github.com/urfave/cli/v2"
 )
 
@@ -41,6 +44,33 @@ func main() {
 			},
 		},
 	}
+
+	container.Singleton(func() *lib.Config {
+		config, err := lib.GetConfig()
+		if err != nil {
+			return nil
+		}
+		return &config
+	})
+	container.Singleton(func(config lib.Config) *lib.FilesDB {
+		files, err := lib.NewFilesDb(config.GetFilesPath())
+		if err != nil {
+			panic(err)
+		}
+		return files
+	})
+	container.Singleton(func(config lib.Config) *lib.Repo {
+		return lib.NewRepo(config)
+	})
+	container.Singleton(func(config lib.Config) lib.FilesProcessor {
+		if config.Mode == lib.SymlinkMode {
+			return lib.NewSymlinkProcessor(config)
+		}
+		if config.Mode == lib.CopyMode {
+			return lib.NewCopyProcessor(config)
+		}
+		panic(errors.New("unknown mode"))
+	})
 
 	err := app.Run(os.Args)
 

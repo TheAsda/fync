@@ -1,27 +1,41 @@
 package cmd
 
 import (
+	"errors"
 	"path/filepath"
 	"theasda/fync/lib"
 
+	"github.com/golobby/container/v3"
 	"github.com/manifoldco/promptui"
 	"github.com/urfave/cli/v2"
 )
 
 func HandleInit(context *cli.Context) error {
-	c, err := lib.GetConfig()
-	if err == nil {
-		return lib.InitRepo(*c)
-		// return errors.New("Config already exists")
-	}
-	config, err := PromptConfig()
+	var config *lib.Config
+	var repo *lib.Repo
+	err := container.Resolve(&config)
 	if err != nil {
 		return err
 	}
-	if err = lib.SaveConfig(&config); err != nil {
-		return err
+	if config == nil {
+		*config, err = PromptConfig()
+		if err != nil {
+			return err
+		}
+		if err = lib.SaveConfig(*config); err != nil {
+			return err
+		}
+		repo = lib.NewRepo(*config)
+	} else {
+		err = container.Resolve(&repo)
+		if err != nil {
+			return err
+		}
 	}
-	return lib.InitRepo(config)
+	if repo.Exists() {
+		return errors.New("repository already initialized")
+	}
+	return repo.Clone()
 }
 
 func PromptConfig() (lib.Config, error) {
