@@ -40,18 +40,22 @@ func HandleInit(context *cli.Context) error {
 
 func PromptConfig() (lib.Config, error) {
 	repositoryPrompt := promptui.Prompt{
-		Label: "Git repository",
+		Label:       "Git repository",
+		HideEntered: true,
 	}
 	pathPrompt := promptui.Prompt{
-		Label: "Path where local repository will be placed",
+		Label:       "Path where local repository will be placed",
+		HideEntered: true,
 	}
 	syncOnActionPrompt := promptui.Select{
-		Label: "Sync on action",
-		Items: []string{"yes", "no"},
+		Label:        "Sync on action",
+		Items:        []string{"yes", "no"},
+		HideSelected: true,
 	}
 	modePrompt := promptui.Select{
-		Label: "Mode",
-		Items: []string{lib.SymlinkMode, lib.CopyMode},
+		Label:        "Mode",
+		Items:        []string{lib.SymlinkMode, lib.CopyMode},
+		HideSelected: true,
 	}
 
 	repository, err := repositoryPrompt.Run()
