@@ -20,7 +20,7 @@ func NewRepo(config Config) *Repo {
 	}
 }
 
-func (repo *Repo) Exists() bool {
+func (repo Repo) Exists() bool {
 	if !FileExists(repo.config.Path) {
 		return false
 	}
@@ -30,7 +30,7 @@ func (repo *Repo) Exists() bool {
 	return err != nil
 }
 
-func (repo *Repo) Clone() error {
+func (repo Repo) Clone() error {
 	if err := os.MkdirAll(repo.config.Path, 0644); err != nil {
 		return err
 	}
@@ -39,15 +39,19 @@ func (repo *Repo) Clone() error {
 	return cmd.Run()
 }
 
-func (repo *Repo) CommitFiles() error {
+func (repo Repo) StageFiles() error {
+	addCmd := exec.Command("git", "add", "-A")
+	addCmd.Dir = repo.config.Path
+	return addCmd.Run()
+}
+
+func (repo Repo) CommitFiles() error {
 	commitMessage, err := repo.getCommitMessage()
 	if err != nil {
 		return err
 	}
 
-	addCmd := exec.Command("git", "add", "-A")
-	addCmd.Dir = repo.config.Path
-	if err = addCmd.Run(); err != nil {
+	if err = repo.StageFiles(); err != nil {
 		return err
 	}
 
@@ -56,7 +60,21 @@ func (repo *Repo) CommitFiles() error {
 	return commitCmd.Run()
 }
 
-func (repo *Repo) getCommitMessage() (string, error) {
+func (repo Repo) Push() error {
+	pushCmd := exec.Command("git", "push")
+	pushCmd.Dir = repo.config.Path
+
+	return pushCmd.Run()
+}
+
+func (repo *Repo) UpdateRepo() error {
+	if err := repo.CommitFiles(); err != nil {
+		return err
+	}
+	return repo.Push()
+}
+
+func (repo Repo) getCommitMessage() (string, error) {
 	statusCmd := exec.Command("git", "status", "-sb")
 	statusCmd.Dir = repo.config.Path
 	var stdBuffer bytes.Buffer

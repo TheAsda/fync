@@ -2,7 +2,7 @@ package main
 
 import (
 	"errors"
-	"log"
+	"fmt"
 	"os"
 	"theasda/fync/cmd"
 	"theasda/fync/lib"
@@ -97,8 +97,9 @@ func main() {
 	err := app.Run(os.Args)
 
 	if err != nil {
-		log.Fatal(err)
+		fmt.Errorf("Error: %v", err)
+		os.Exit(1)
 	} else {
-		log.Println("Ok")
+		fmt.Printf("Success")
 	}
 }

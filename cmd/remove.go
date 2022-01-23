@@ -32,6 +32,6 @@ func HandleRemove(context *cli.Context) error {
 		return err
 	}
 	return container.Call(func(repo *lib.Repo) error {
-		return repo.CommitFiles()
+		return repo.UpdateRepo()
 	})
 }
