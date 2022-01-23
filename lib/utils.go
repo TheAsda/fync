@@ -5,6 +5,8 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
+
+	"github.com/sirupsen/logrus"
 )
 
 func FileExists(path string) bool {
@@ -13,6 +15,7 @@ func FileExists(path string) bool {
 }
 
 func CopyFile(from string, to string) error {
+	logrus.Debugf("Copying %s to %s", from, to)
 	data, err := ioutil.ReadFile(from)
 	if err != nil {
 		return err

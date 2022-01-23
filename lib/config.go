@@ -24,7 +24,7 @@ type Config struct {
 }
 
 func (config Config) GetFilesPath() string {
-	return path.Join(config.Path, "files")
+	return path.Join(config.Path, FilesCollectionName)
 }
 
 func GetConfig() (config Config, err error) {

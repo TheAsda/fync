@@ -17,6 +17,66 @@ func main() {
 		DisableTimestamp: true,
 	})
 
+	app := &cli.App{
+		Name:  "fync",
+		Usage: "Sync specified files with provided git repository",
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:  "debug",
+				Usage: "Show debug logs",
+			},
+		},
+		Commands: []*cli.Command{
+			{
+				Name:   "init",
+				Usage:  "Initialize config",
+				Action: cmd.HandleInit,
+			},
+			{
+				Name:      "add",
+				Usage:     "Add file for syncing",
+				ArgsUsage: "[file]",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:  "name",
+						Usage: "Name which will be used as ID of file",
+					},
+				},
+				Action: cmd.HandleAdd,
+			},
+			{
+				Name:   "sync",
+				Usage:  "Sync files",
+				Action: cmd.HandleSync,
+			},
+			{
+				Name:      "remove",
+				Usage:     "Remove file from syncing",
+				ArgsUsage: "[id or file]",
+				Action:    cmd.HandleRemove,
+			},
+		},
+		Before: func(c *cli.Context) error {
+			enableDebug := c.Bool("debug")
+			if enableDebug {
+				logrus.SetLevel(logrus.DebugLevel)
+			} else {
+				logrus.SetLevel(logrus.InfoLevel)
+			}
+			initializeContainer()
+			return nil
+		},
+	}
+
+	err := app.Run(os.Args)
+
+	if err != nil {
+		logrus.Error(err)
+		os.Exit(1)
+	}
+}
+
+func initializeContainer() {
 	if err := container.Singleton(func() *lib.Config {
 		logrus.Debug("Initializing Config")
 		config, err := lib.GetConfig()
@@ -68,47 +128,5 @@ func main() {
 		panic(errors.New("unknown mode"))
 	}); err != nil {
 		panic(err)
-	}
-
-	app := &cli.App{
-		Name:  "fync",
-		Usage: "Sync specified files with provided git repository",
-		Commands: []*cli.Command{
-			{
-				Name:   "init",
-				Usage:  "Initialize config",
-				Action: cmd.HandleInit,
-			},
-			{
-				Name:      "add",
-				Usage:     "Add file for syncing",
-				ArgsUsage: "[file]",
-				Flags: []cli.Flag{
-					&cli.StringFlag{
-						Name:  "name",
-						Usage: "Name which will be used as ID of file",
-					},
-				},
-				Action: cmd.HandleAdd,
-			},
-			{
-				Name:   "sync",
-				Usage:  "Sync files",
-				Action: cmd.HandleSync,
-			},
-			{
-				Name:      "remove",
-				Usage:     "Remove file from syncing",
-				ArgsUsage: "[id or file]",
-				Action:    cmd.HandleRemove,
-			},
-		},
-	}
-
-	err := app.Run(os.Args)
-
-	if err != nil {
-		logrus.Error(err)
-		os.Exit(1)
 	}
 }

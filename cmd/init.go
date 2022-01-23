@@ -14,9 +14,9 @@ import (
 func HandleInit(context *cli.Context) error {
 	var config *lib.Config
 	var repo *lib.Repo
-	err := container.Resolve(&config)
-	if err != nil {
-		return err
+
+	if e := container.Resolve(&config); e != nil {
+		panic(e)
 	}
 	if config == nil {
 		newConfig, err := PromptConfig()
@@ -28,15 +28,14 @@ func HandleInit(context *cli.Context) error {
 		}
 		repo = lib.NewRepo(newConfig)
 	} else {
-		err = container.Resolve(&repo)
-		if err != nil {
-			return err
+		if err := container.Resolve(&repo); err != nil {
+			panic(err)
 		}
 	}
 	if repo.Exists() {
 		return errors.New("repository already initialized")
 	}
-	if err = repo.Clone(); err != nil {
+	if err := repo.Clone(); err != nil {
 		return err
 	}
 	logrus.Info("Init completed")

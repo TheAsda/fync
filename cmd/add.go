@@ -23,25 +23,34 @@ func HandleAdd(context *cli.Context) error {
 		return err
 	}
 	file := lib.File{ID: id, Path: fullPath}
-	if err := container.Call(func(filesDb *lib.FilesDB) error {
-		return filesDb.Add(file)
-	}); err != nil {
+	if e := container.Call(func(filesDb *lib.FilesDB) {
+		err = filesDb.Add(file)
+	}); e != nil {
+		panic(e)
+	}
+	if err != nil {
 		return err
 	}
-	if err := container.Call(func(filesProcessor lib.FilesProcessor) error {
-		return filesProcessor.Add(file)
-	}); err != nil {
+	if e := container.Call(func(filesProcessor lib.FilesProcessor) {
+		err = filesProcessor.Add(file)
+	}); e != nil {
+		panic(e)
+	}
+	if err != nil {
 		return err
 	}
-	return container.Call(func(repo *lib.Repo) error {
-		return repo.UpdateRepo()
-	})
+	if e := container.Call(func(repo *lib.Repo) {
+		err = repo.UpdateRepo()
+	}); e != nil {
+		return e
+	}
+	return err
 }
 
 func getId(path string, name string) (string, error) {
 	var filesDb *lib.FilesDB
 	if err := container.Resolve(&filesDb); err != nil {
-		return "", err
+		panic(err)
 	}
 	var id string
 	if len(name) != 0 {

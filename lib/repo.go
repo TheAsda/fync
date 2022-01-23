@@ -8,6 +8,8 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/sirupsen/logrus"
 )
 
 type Repo struct {
@@ -22,6 +24,7 @@ func NewRepo(config Config) *Repo {
 
 func (repo Repo) Exists() bool {
 	if !FileExists(repo.config.Path) {
+		logrus.Debug("Repo path does not exist")
 		return false
 	}
 	statusCmd := exec.Command("git", "status")
@@ -30,10 +33,17 @@ func (repo Repo) Exists() bool {
 	w := io.MultiWriter(&stdBuffer)
 	statusCmd.Stdout = w
 	err := statusCmd.Run()
-	return err == nil && !strings.Contains(stdBuffer.String(), "not a git repository")
+	exists := err == nil && !strings.Contains(stdBuffer.String(), "not a git repository")
+	if exists {
+		logrus.Debug("Repo exists")
+	} else {
+		logrus.Debug("Repo does not exist")
+	}
+	return exists
 }
 
 func (repo Repo) Clone() error {
+	logrus.Debug("Cloning repository")
 	if err := os.MkdirAll(repo.config.Path, 0644); err != nil {
 		return err
 	}
@@ -43,6 +53,7 @@ func (repo Repo) Clone() error {
 }
 
 func (repo Repo) StageFiles() error {
+	logrus.Debug("Staging files")
 	addCmd := exec.Command("git", "add", "-A")
 	addCmd.Dir = repo.config.Path
 	return addCmd.Run()
@@ -58,12 +69,14 @@ func (repo Repo) CommitFiles() error {
 		return err
 	}
 
+	logrus.Info("Committing files")
 	commitCmd := exec.Command("git", "commit", "-m", commitMessage)
 	commitCmd.Dir = repo.config.Path
 	return commitCmd.Run()
 }
 
 func (repo Repo) Push() error {
+	logrus.Info("Pushing")
 	pushCmd := exec.Command("git", "push")
 	pushCmd.Dir = repo.config.Path
 

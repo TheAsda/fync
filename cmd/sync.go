@@ -13,7 +13,11 @@ func HandleSync(context *cli.Context) error {
 	}); err != nil {
 		return err
 	}
-	return container.Call(func(repo *lib.Repo) error {
-		return repo.UpdateRepo()
-	})
+	var err error = nil
+	if e := container.Call(func(repo *lib.Repo) {
+		err = repo.UpdateRepo()
+	}); e != nil {
+		panic(e)
+	}
+	return err
 }

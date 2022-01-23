@@ -16,7 +16,7 @@ func HandleRemove(context *cli.Context) error {
 	}
 	var filesDb *lib.FilesDB
 	if err := container.Resolve(&filesDb); err != nil {
-		return err
+		panic(err)
 	}
 	filePath, err := filepath.Abs(fileOrId)
 	if err != nil {
@@ -26,12 +26,18 @@ func HandleRemove(context *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	if err = container.Call(func(filesProcessor lib.FilesProcessor) error {
-		return filesProcessor.Remove(file)
-	}); err != nil {
+	if e := container.Call(func(filesProcessor lib.FilesProcessor) {
+		err = filesProcessor.Remove(file)
+	}); e != nil {
+		panic(e)
+	}
+	if err != nil {
 		return err
 	}
-	return container.Call(func(repo *lib.Repo) error {
-		return repo.UpdateRepo()
-	})
+	if e := container.Call(func(repo *lib.Repo) {
+		err = repo.UpdateRepo()
+	}); e != nil {
+		panic(e)
+	}
+	return err
 }

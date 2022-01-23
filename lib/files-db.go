@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
+
+	"github.com/sirupsen/logrus"
 )
 
 type File struct {
@@ -41,6 +43,7 @@ func NewFilesDb(path string) (*FilesDB, error) {
 }
 
 func (f *FilesDB) save() error {
+	logrus.Debug("Saving Files DB")
 	b, err := json.Marshal(f.files)
 	if err != nil {
 		return err
@@ -62,6 +65,7 @@ func (f *FilesDB) Exists(id string) bool {
 }
 
 func (f *FilesDB) Add(file File) error {
+	logrus.Debug("Adding file")
 	if f.Exists(file.ID) {
 		return errors.New("ID already exists")
 	}
@@ -70,6 +74,7 @@ func (f *FilesDB) Add(file File) error {
 }
 
 func (f *FilesDB) Remove(id string) error {
+	logrus.Debug("Removing file")
 	for i, file := range f.files {
 		if file.ID == id {
 			f.remove(i)
@@ -80,6 +85,7 @@ func (f *FilesDB) Remove(id string) error {
 }
 
 func (f *FilesDB) RemoveByPath(path string) (File, error) {
+	logrus.Debug("Removing file by path")
 	for i, file := range f.files {
 		if file.Path == path {
 			f.remove(i)
@@ -89,16 +95,7 @@ func (f *FilesDB) RemoveByPath(path string) (File, error) {
 	return File{}, errors.New("cannot find file")
 }
 
-func (f *FilesDB) Update(newFile File) error {
-	for i, file := range f.files {
-		if file.ID == newFile.ID {
-			f.files[i] = file
-			return f.save()
-		}
-	}
-	return errors.New("cannot find file")
-}
-
 func (f *FilesDB) GetAll() (files []File) {
+	logrus.Debug("Getting all files")
 	return f.files
 }
