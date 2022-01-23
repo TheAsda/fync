@@ -3,7 +3,6 @@ package lib
 import (
 	"encoding/json"
 	"errors"
-	"io/fs"
 	"io/ioutil"
 )
 
@@ -20,13 +19,13 @@ type FilesDB struct {
 const FilesCollectionName = "files"
 
 func NewFilesDb(path string) (*FilesDB, error) {
-	b, err := ioutil.ReadFile(path)
-	if err == fs.ErrNotExist {
+	if !FileExists(path) {
 		return &FilesDB{
 			files: []File{},
 			path:  path,
 		}, nil
 	}
+	b, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}

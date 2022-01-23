@@ -1,7 +1,10 @@
 package lib
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"strings"
@@ -31,7 +34,7 @@ func (repo *Repo) Clone() error {
 	if err := os.MkdirAll(repo.config.Path, 0664); err != nil {
 		return err
 	}
-	cmd := exec.Command("git", "clone", repo.config.Repository)
+	cmd := exec.Command("git", "clone", repo.config.Repository, ".")
 	cmd.Dir = repo.config.Path
 	return cmd.Run()
 }
@@ -41,24 +44,33 @@ func (repo *Repo) CommitFiles() error {
 	if err != nil {
 		return err
 	}
-	cmd := exec.Command("git", "commit", "-A", "-m", commitMessage)
-	cmd.Dir = repo.config.Path
-	return cmd.Run()
+
+	addCmd := exec.Command("git", "add", "-A")
+	addCmd.Dir = repo.config.Path
+	if err = addCmd.Run(); err != nil {
+		return err
+	}
+
+	commitCmd := exec.Command("git", "commit", "-m", commitMessage)
+	commitCmd.Dir = repo.config.Path
+	return commitCmd.Run()
 }
 
 func (repo *Repo) getCommitMessage() (string, error) {
-	statusCmd := exec.Command("git", "status")
-	statusCmd.Output()
+	statusCmd := exec.Command("git", "status", "-sb")
 	statusCmd.Dir = repo.config.Path
+	var stdBuffer bytes.Buffer
+	w := io.MultiWriter(&stdBuffer)
+	statusCmd.Stdout = w
 	err := statusCmd.Run()
 	if err != nil {
 		return "", err
 	}
-	status, err := statusCmd.Output()
-	if err != nil {
-		return "", err
+	status := stdBuffer.String()
+	addedFiles, modifiedFiles, deletedFiles := parseStatus(status)
+	if len(addedFiles)+len(modifiedFiles)+len(deletedFiles) == 0 {
+		return "", errors.New("no changes in files")
 	}
-	addedFiles, modifiedFiles, deletedFiles := parseStatus(string(status))
 	return getCommitMessage(addedFiles, modifiedFiles, deletedFiles), nil
 }
 

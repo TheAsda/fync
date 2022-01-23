@@ -11,11 +11,11 @@ import (
 )
 
 func HandleAdd(context *cli.Context) error {
-	file := context.Args().Get(0)
-	if len(file) == 0 {
+	path := context.Args().Get(0)
+	if len(path) == 0 {
 		return errors.New("file is not provided")
 	}
-	fullPath, err := filepath.Abs(file)
+	fullPath, err := filepath.Abs(path)
 	if err != nil {
 		return err
 	}
@@ -23,20 +23,24 @@ func HandleAdd(context *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	var filesDb lib.FilesDB
+	var filesDb *lib.FilesDB
 	if err := container.Resolve(&filesDb); err != nil {
 		return err
 	}
-	if err = filesDb.Add(lib.File{ID: id, Path: fullPath}); err != nil {
+	file := lib.File{ID: id, Path: fullPath}
+	if err = filesDb.Add(file); err != nil {
 		return err
 	}
-	return container.Call(func(repo lib.Repo) error {
+	container.Call(func(filesProcessor lib.FilesProcessor) error {
+		return filesProcessor.Add(file)
+	})
+	return container.Call(func(repo *lib.Repo) error {
 		return repo.CommitFiles()
 	})
 }
 
 func getId(path string, name string) (string, error) {
-	var filesDb lib.FilesDB
+	var filesDb *lib.FilesDB
 	if err := container.Resolve(&filesDb); err != nil {
 		return "", err
 	}
