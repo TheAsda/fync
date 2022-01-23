@@ -22,17 +22,17 @@ func HandleAdd(context *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	var filesDb *lib.FilesDB
-	if err := container.Resolve(&filesDb); err != nil {
-		return err
-	}
 	file := lib.File{ID: id, Path: fullPath}
-	if err = filesDb.Add(file); err != nil {
+	if err := container.Call(func(filesDb *lib.FilesDB) error {
+		return filesDb.Add(file)
+	}); err != nil {
 		return err
 	}
-	container.Call(func(filesProcessor lib.FilesProcessor) error {
+	if err := container.Call(func(filesProcessor lib.FilesProcessor) error {
 		return filesProcessor.Add(file)
-	})
+	}); err != nil {
+		return err
+	}
 	return container.Call(func(repo *lib.Repo) error {
 		return repo.CommitFiles()
 	})
