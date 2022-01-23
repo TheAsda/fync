@@ -45,9 +45,3 @@ func SaveConfig(config Config) error {
 	}
 	return ioutil.WriteFile(ConfigFile, bytes, 0644)
 }
-
-const (
-	First = iota
-	Second
-	Third
-)

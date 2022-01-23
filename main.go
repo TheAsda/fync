@@ -6,7 +6,6 @@ import (
 	"os"
 	"theasda/fync/cmd"
 	"theasda/fync/lib"
-	"time"
 
 	"github.com/golobby/container/v3"
 	"github.com/urfave/cli/v2"
@@ -22,6 +21,7 @@ func main() {
 	}); err != nil {
 		panic(err)
 	}
+
 	if err := container.Singleton(func(config *lib.Config) *lib.FilesDB {
 		if config == nil {
 			return nil
@@ -34,6 +34,7 @@ func main() {
 	}); err != nil {
 		panic(err)
 	}
+
 	if err := container.Singleton(func(config *lib.Config) *lib.Repo {
 		if config == nil {
 			return nil
@@ -42,6 +43,7 @@ func main() {
 	}); err != nil {
 		panic(err)
 	}
+
 	if err := container.Singleton(func(config *lib.Config) lib.FilesProcessor {
 		if config == nil {
 			return &lib.CopyProcessor{}
@@ -58,15 +60,8 @@ func main() {
 	}
 
 	app := &cli.App{
-		Name:     "fync",
-		Usage:    "Sync specified files with provided git repository",
-		Compiled: time.Now(),
-		Authors: []*cli.Author{
-			{
-				Name:  "Andrey Kiselev",
-				Email: "omega-faworit@yandex.ru",
-			},
-		},
+		Name:  "fync",
+		Usage: "Sync specified files with provided git repository",
 		Commands: []*cli.Command{
 			{
 				Name:   "init",
