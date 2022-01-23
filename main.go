@@ -13,11 +13,60 @@ import (
 )
 
 func main() {
+	if err := container.Singleton(func() *lib.Config {
+		config, err := lib.GetConfig()
+		if err != nil {
+			return nil
+		}
+		return &config
+	}); err != nil {
+		log.Fatal(err)
+	}
+	if err := container.Singleton(func(config *lib.Config) *lib.FilesDB {
+		if config == nil {
+			return nil
+		}
+		files, err := lib.NewFilesDb(config.GetFilesPath())
+		if err != nil {
+			panic(err)
+		}
+		return files
+	}); err != nil {
+		log.Fatal(err)
+	}
+	if err := container.Singleton(func(config *lib.Config) *lib.Repo {
+		if config == nil {
+			return nil
+		}
+		return lib.NewRepo(*config)
+	}); err != nil {
+		log.Fatal(err)
+	}
+	if err := container.Singleton(func(config *lib.Config) lib.FilesProcessor {
+		if config == nil {
+			return &lib.CopyProcessor{}
+		}
+		if config.Mode == lib.SymlinkMode {
+			return lib.NewSymlinkProcessor(*config)
+		}
+		if config.Mode == lib.CopyMode {
+			return lib.NewCopyProcessor(*config)
+		}
+		panic(errors.New("unknown mode"))
+	}); err != nil {
+		log.Fatal(err)
+	}
+
 	app := &cli.App{
 		Name:     "fync",
 		Usage:    "Sync specified files with provided git repository",
 		Compiled: time.Now(),
-		Authors:  []*cli.Author{{Name: "Andrey Kiselev", Email: "omega-faworit@yandex.ru"}},
+		Authors: []*cli.Author{
+			{
+				Name:  "Andrey Kiselev",
+				Email: "omega-faworit@yandex.ru",
+			},
+		},
 		Commands: []*cli.Command{
 			{
 				Name:   "init",
@@ -28,8 +77,13 @@ func main() {
 				Name:      "add",
 				Usage:     "Add file for syncing",
 				ArgsUsage: "[file]",
-				Flags:     []cli.Flag{&cli.StringFlag{Name: "name", Usage: "Name which will be used as ID of file"}},
-				Action:    cmd.HandleAdd,
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:  "name",
+						Usage: "Name which will be used as ID of file",
+					},
+				},
+				Action: cmd.HandleAdd,
 			},
 			{
 				Name:   "sync",
@@ -44,33 +98,6 @@ func main() {
 			},
 		},
 	}
-
-	container.Singleton(func() *lib.Config {
-		config, err := lib.GetConfig()
-		if err != nil {
-			return nil
-		}
-		return &config
-	})
-	container.Singleton(func(config lib.Config) *lib.FilesDB {
-		files, err := lib.NewFilesDb(config.GetFilesPath())
-		if err != nil {
-			panic(err)
-		}
-		return files
-	})
-	container.Singleton(func(config lib.Config) *lib.Repo {
-		return lib.NewRepo(config)
-	})
-	container.Singleton(func(config lib.Config) lib.FilesProcessor {
-		if config.Mode == lib.SymlinkMode {
-			return lib.NewSymlinkProcessor(config)
-		}
-		if config.Mode == lib.CopyMode {
-			return lib.NewCopyProcessor(config)
-		}
-		panic(errors.New("unknown mode"))
-	})
 
 	err := app.Run(os.Args)
 

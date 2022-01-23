@@ -2,6 +2,7 @@ package lib
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -27,6 +28,9 @@ func (repo *Repo) Exists() bool {
 }
 
 func (repo *Repo) Clone() error {
+	if err := os.MkdirAll(repo.config.Path, 0664); err != nil {
+		return err
+	}
 	cmd := exec.Command("git", "clone", repo.config.Repository)
 	cmd.Dir = repo.config.Path
 	return cmd.Run()

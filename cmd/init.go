@@ -18,14 +18,14 @@ func HandleInit(context *cli.Context) error {
 		return err
 	}
 	if config == nil {
-		*config, err = PromptConfig()
+		newConfig, err := PromptConfig()
 		if err != nil {
 			return err
 		}
-		if err = lib.SaveConfig(*config); err != nil {
+		if err = lib.SaveConfig(newConfig); err != nil {
 			return err
 		}
-		repo = lib.NewRepo(*config)
+		repo = lib.NewRepo(newConfig)
 	} else {
 		err = container.Resolve(&repo)
 		if err != nil {
