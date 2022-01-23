@@ -24,10 +24,13 @@ func (repo Repo) Exists() bool {
 	if !FileExists(repo.config.Path) {
 		return false
 	}
-	cmd := exec.Command("git", "status")
-	cmd.Dir = repo.config.Path
-	err := cmd.Run()
-	return err != nil
+	statusCmd := exec.Command("git", "status")
+	statusCmd.Dir = repo.config.Path
+	var stdBuffer bytes.Buffer
+	w := io.MultiWriter(&stdBuffer)
+	statusCmd.Stdout = w
+	err := statusCmd.Run()
+	return err == nil && !strings.Contains(stdBuffer.String(), "not a git repository")
 }
 
 func (repo Repo) Clone() error {

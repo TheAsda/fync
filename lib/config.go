@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"path"
 
+	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 )
 
@@ -27,6 +28,7 @@ func (config Config) GetFilesPath() string {
 }
 
 func GetConfig() (config Config, err error) {
+	logrus.Debug("Getting config")
 	if !FileExists(ConfigFile) {
 		return Config{}, errors.New("Config does not exist")
 	}
@@ -39,6 +41,7 @@ func GetConfig() (config Config, err error) {
 }
 
 func SaveConfig(config Config) error {
+	logrus.Debug("Saving config")
 	bytes, err := yaml.Marshal(&config)
 	if err != nil {
 		return err

@@ -7,6 +7,7 @@ import (
 
 	"github.com/golobby/container/v3"
 	"github.com/manifoldco/promptui"
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )
 
@@ -35,7 +36,11 @@ func HandleInit(context *cli.Context) error {
 	if repo.Exists() {
 		return errors.New("repository already initialized")
 	}
-	return repo.Clone()
+	if err = repo.Clone(); err != nil {
+		return err
+	}
+	logrus.Info("Init completed")
+	return nil
 }
 
 func PromptConfig() (lib.Config, error) {

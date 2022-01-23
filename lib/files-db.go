@@ -16,7 +16,7 @@ type FilesDB struct {
 	path  string
 }
 
-const FilesCollectionName = "files"
+const FilesCollectionName = "_files.json"
 
 func NewFilesDb(path string) (*FilesDB, error) {
 	if !FileExists(path) {

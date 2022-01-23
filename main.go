@@ -2,17 +2,23 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"theasda/fync/cmd"
 	"theasda/fync/lib"
 
 	"github.com/golobby/container/v3"
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )
 
 func main() {
+	logrus.SetFormatter(&logrus.TextFormatter{
+		ForceColors:      true,
+		DisableTimestamp: true,
+	})
+
 	if err := container.Singleton(func() *lib.Config {
+		logrus.Debug("Initializing Config")
 		config, err := lib.GetConfig()
 		if err != nil {
 			return nil
@@ -23,6 +29,7 @@ func main() {
 	}
 
 	if err := container.Singleton(func(config *lib.Config) *lib.FilesDB {
+		logrus.Debug("Initializing Files DB")
 		if config == nil {
 			return nil
 		}
@@ -36,6 +43,7 @@ func main() {
 	}
 
 	if err := container.Singleton(func(config *lib.Config) *lib.Repo {
+		logrus.Debug("Initializing Repo")
 		if config == nil {
 			return nil
 		}
@@ -45,13 +53,16 @@ func main() {
 	}
 
 	if err := container.Singleton(func(config *lib.Config) lib.FilesProcessor {
+		logrus.Debug("Initializing File Processor")
 		if config == nil {
 			return &lib.CopyProcessor{}
 		}
 		if config.Mode == lib.SymlinkMode {
+			logrus.Debug("Using Symlink Processor")
 			return lib.NewSymlinkProcessor(*config)
 		}
 		if config.Mode == lib.CopyMode {
+			logrus.Debug("Using Copy Processor")
 			return lib.NewCopyProcessor(*config)
 		}
 		panic(errors.New("unknown mode"))
@@ -97,9 +108,7 @@ func main() {
 	err := app.Run(os.Args)
 
 	if err != nil {
-		fmt.Errorf("Error: %v", err)
+		logrus.Error(err)
 		os.Exit(1)
-	} else {
-		fmt.Printf("Success")
 	}
 }
