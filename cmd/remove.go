@@ -14,21 +14,24 @@ func HandleRemove(context *cli.Context) error {
 	if len(fileOrId) == 0 {
 		return errors.New("file is not provided")
 	}
-	var filesDb lib.FilesDB
+	var filesDb *lib.FilesDB
 	if err := container.Resolve(&filesDb); err != nil {
 		return err
-	}
-	if filesDb.Exists(fileOrId) {
-		return filesDb.Remove(fileOrId)
 	}
 	filePath, err := filepath.Abs(fileOrId)
 	if err != nil {
 		return err
 	}
-	if err = filesDb.RemoveByPath(filePath); err != nil {
+	file, err := filesDb.RemoveByPath(filePath)
+	if err != nil {
 		return err
 	}
-	return container.Call(func(repo lib.Repo) error {
+	if err = container.Call(func(filesProcessor lib.FilesProcessor) error {
+		return filesProcessor.Remove(file)
+	}); err != nil {
+		return err
+	}
+	return container.Call(func(repo *lib.Repo) error {
 		return repo.CommitFiles()
 	})
 }

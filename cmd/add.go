@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"crypto/sha1"
 	"errors"
 	"path/filepath"
 	"theasda/fync/lib"
@@ -50,8 +49,7 @@ func getId(path string, name string) (string, error) {
 	} else if name := filepath.Base(path); !filesDb.Exists(name) {
 		id = filepath.Base(name)
 	} else {
-		hash := sha1.Sum([]byte(path))
-		id = string(hash[:])
+		return "", errors.New("file name already taken, please specify custom name")
 	}
 	return id, nil
 }

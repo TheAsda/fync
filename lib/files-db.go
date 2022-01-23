@@ -45,7 +45,7 @@ func (f *FilesDB) save() error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(f.path, b, 0664)
+	return ioutil.WriteFile(f.path, b, 0644)
 }
 
 func (f *FilesDB) remove(index int) {
@@ -79,14 +79,14 @@ func (f *FilesDB) Remove(id string) error {
 	return errors.New("cannot find file")
 }
 
-func (f *FilesDB) RemoveByPath(path string) error {
+func (f *FilesDB) RemoveByPath(path string) (File, error) {
 	for i, file := range f.files {
 		if file.Path == path {
 			f.remove(i)
-			return f.save()
+			return file, f.save()
 		}
 	}
-	return errors.New("cannot find file")
+	return File{}, errors.New("cannot find file")
 }
 
 func (f *FilesDB) Update(newFile File) error {

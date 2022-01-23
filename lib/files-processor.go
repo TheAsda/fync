@@ -73,7 +73,7 @@ func (sp *CopyProcessor) Update(files []File) error {
 		if areEqual {
 			continue
 		}
-		if err != CopyFile(file.Path, idPath) {
+		if err := CopyFile(file.Path, idPath); err != nil {
 			return err
 		}
 	}

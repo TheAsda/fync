@@ -17,7 +17,7 @@ func CopyFile(from string, to string) error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(to, data, os.ModeAppend)
+	return ioutil.WriteFile(to, data, 0644)
 }
 
 func CompareFiles(first string, secord string) (bool, error) {

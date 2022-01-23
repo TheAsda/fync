@@ -20,7 +20,7 @@ func main() {
 		}
 		return &config
 	}); err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	if err := container.Singleton(func(config *lib.Config) *lib.FilesDB {
 		if config == nil {
@@ -32,7 +32,7 @@ func main() {
 		}
 		return files
 	}); err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	if err := container.Singleton(func(config *lib.Config) *lib.Repo {
 		if config == nil {
@@ -40,7 +40,7 @@ func main() {
 		}
 		return lib.NewRepo(*config)
 	}); err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	if err := container.Singleton(func(config *lib.Config) lib.FilesProcessor {
 		if config == nil {
@@ -54,7 +54,7 @@ func main() {
 		}
 		panic(errors.New("unknown mode"))
 	}); err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	app := &cli.App{
