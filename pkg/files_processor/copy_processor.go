@@ -3,7 +3,6 @@ package files_processor
 import (
 	"os"
 	"theasda/fync/pkg/config"
-	"theasda/fync/pkg/storage"
 	"theasda/fync/pkg/utils"
 
 	"github.com/sirupsen/logrus"
@@ -21,22 +20,22 @@ func NewCopyProcessor(config config.Config) *CopyProcessor {
 	}
 }
 
-func (sp *CopyProcessor) Add(file storage.File) error {
+func (sp *CopyProcessor) Add(file string, path string) error {
 	logrus.Debug("Copying file")
-	return utils.CopyFile(file.Path, sp.FilesProcessorBase.getIdPath(file.ID))
+	return utils.CopyFile(path, sp.FilesProcessorBase.getFilePath(file))
 }
 
-func (sp *CopyProcessor) Remove(file storage.File) error {
+func (sp *CopyProcessor) Remove(file string) error {
 	logrus.Debug("Removing file")
-	return os.Remove(sp.FilesProcessorBase.getIdPath(file.ID))
+	return os.Remove(sp.FilesProcessorBase.getFilePath(file))
 }
 
-func (sp *CopyProcessor) Update(files []storage.File) error {
+func (sp *CopyProcessor) Update(files map[string]string) error {
 	logrus.Info("Updating files")
-	for _, file := range files {
-		idPath := sp.FilesProcessorBase.getIdPath(file.ID)
-		logrus.Debugf("Checking %s", file.Path)
-		areEqual, err := utils.CompareFiles(file.Path, idPath)
+	for file, path := range files {
+		filePath := sp.FilesProcessorBase.getFilePath(file)
+		logrus.Debugf("Checking %s", file)
+		areEqual, err := utils.CompareFiles(filePath, path)
 		if err != nil {
 			return err
 		}
@@ -45,7 +44,7 @@ func (sp *CopyProcessor) Update(files []storage.File) error {
 			continue
 		}
 		logrus.Debug("File changed")
-		if err := utils.CopyFile(file.Path, idPath); err != nil {
+		if err := utils.CopyFile(path, filePath); err != nil {
 			return err
 		}
 	}

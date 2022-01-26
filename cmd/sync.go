@@ -1,9 +1,9 @@
 package cmd
 
 import (
+	c "theasda/fync/pkg/config"
 	"theasda/fync/pkg/files_processor"
-	"theasda/fync/pkg/repo"
-	"theasda/fync/pkg/storage"
+	r "theasda/fync/pkg/repo"
 	"theasda/fync/pkg/utils"
 
 	"github.com/golobby/container/v3"
@@ -14,11 +14,11 @@ func HandleSync(context *cli.Context) error {
 	utils.CheckInitialization()
 	var err error
 	if e := container.Call(func(
-		storage *storage.Storage,
+		config c.Config,
 		filesProcessor files_processor.FilesProcessor,
-		repo *repo.Repo,
+		repo *r.Repo,
 	) {
-		err = filesProcessor.Update(storage.Files)
+		err = filesProcessor.Update(config.FilesMapping)
 		if err != nil {
 			return
 		}

@@ -1,11 +1,7 @@
 package files_processor
 
-import (
-	"theasda/fync/pkg/storage"
-)
-
 type FilesProcessor interface {
-	Add(file storage.File) error
-	Remove(file storage.File) error
-	Update(files []storage.File) error
+	Add(file string, path string) error
+	Remove(file string) error
+	Update(files map[string]string) error
 }

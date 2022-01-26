@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"path/filepath"
 
 	"github.com/manifoldco/promptui"
@@ -55,4 +56,29 @@ func PromptConfig() (Config, error) {
 		Mode:         mode,
 		IgnoredFiles: []string{},
 	}, nil
+}
+
+func PromptFiles(files []string) (ignoredFiles []string, filesMapping map[string]string, err error) {
+	filesMapping = make(map[string]string)
+	for _, file := range files {
+		ignoreFilePrompt := promptui.SelectWithAdd{
+			Label:    fmt.Sprintf("Would you like to ignore %s", file),
+			Items:    []string{"yes", "no"},
+			AddLabel: "Path",
+		}
+		_, answer, err := ignoreFilePrompt.Run()
+		if err != nil {
+			return []string{}, nil, err
+		}
+		if answer == "yes" {
+			ignoredFiles = append(ignoredFiles, file)
+			continue
+		}
+		absPath, err := filepath.Abs(answer)
+		if err != nil {
+			return []string{}, nil, err
+		}
+		filesMapping[file] = absPath
+	}
+	return ignoredFiles, filesMapping, nil
 }

@@ -12,7 +12,7 @@ import (
 
 type Storage struct {
 	config config.Config
-	Files  []File `json:"files"`
+	Files  []string `json:"files"`
 }
 
 func NewStorage(config config.Config) (*Storage, error) {
@@ -20,7 +20,7 @@ func NewStorage(config config.Config) (*Storage, error) {
 	if !utils.FileExists(config.GetStoragePath()) {
 		logrus.Debug("Storage path does not exist using empty storage")
 		return &Storage{
-			Files: []File{},
+			Files: []string{},
 		}, nil
 	}
 	b, err := ioutil.ReadFile(config.GetStoragePath())
@@ -45,42 +45,31 @@ func (s *Storage) remove(index int) {
 	s.Files = append(s.Files[:index], s.Files[index+1:]...)
 }
 
-func (s *Storage) Exists(id string) bool {
-	for _, file := range s.Files {
-		if file.ID == id {
+func (s *Storage) Exists(file string) bool {
+	for _, f := range s.Files {
+		if f == file {
 			return true
 		}
 	}
 	return false
 }
 
-func (s *Storage) Add(file File) error {
+func (s *Storage) Add(file string) error {
 	logrus.Debug("Adding file")
-	if s.Exists(file.ID) {
+	if s.Exists(file) {
 		return errors.New("ID already exists")
 	}
 	s.Files = append(s.Files, file)
 	return s.save()
 }
 
-func (s *Storage) Remove(id string) error {
+func (s *Storage) Remove(file string) error {
 	logrus.Debug("Removing file")
-	for i, file := range s.Files {
-		if file.ID == id {
+	for i, f := range s.Files {
+		if f == file {
 			s.remove(i)
 			return s.save()
 		}
 	}
 	return errors.New("cannot find file")
-}
-
-func (s *Storage) RemoveByPath(path string) (File, error) {
-	logrus.Debug("Removing file by path")
-	for i, file := range s.Files {
-		if file.Path == path {
-			s.remove(i)
-			return file, s.save()
-		}
-	}
-	return File{}, errors.New("cannot find file")
 }

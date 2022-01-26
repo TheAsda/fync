@@ -3,8 +3,9 @@ package cmd
 import (
 	"errors"
 	"path/filepath"
+	c "theasda/fync/pkg/config"
 	"theasda/fync/pkg/files_processor"
-	"theasda/fync/pkg/repo"
+	r "theasda/fync/pkg/repo"
 	"theasda/fync/pkg/storage"
 	"theasda/fync/pkg/utils"
 
@@ -14,20 +15,27 @@ import (
 
 func HandleRemove(context *cli.Context) error {
 	utils.CheckInitialization()
-	fileOrId := context.Args().Get(0)
-	if len(fileOrId) == 0 {
+	file := context.Args().Get(0)
+	if len(file) == 0 {
 		return errors.New("file is not provided")
 	}
-	filePath, err := filepath.Abs(fileOrId)
+	filePath, err := filepath.Abs(file)
 	if err != nil {
 		return err
 	}
 	if e := container.Call(func(
+		config c.Config,
 		storage *storage.Storage,
 		filesProcessor files_processor.FilesProcessor,
-		repo *repo.Repo,
+		repo *r.Repo,
 	) {
-		file, err := storage.RemoveByPath(filePath)
+		file, err2 := config.FindFile(filePath)
+		if err2 != nil {
+			err = err2
+			return
+		}
+		delete(config.FilesMapping, file)
+		err = storage.Remove(file)
 		if err != nil {
 			return
 		}
@@ -35,6 +43,7 @@ func HandleRemove(context *cli.Context) error {
 		if err != nil {
 			return
 		}
+		c.SaveConfig(config)
 		err = repo.UpdateRepo()
 	}); e != nil {
 		panic(e)

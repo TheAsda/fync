@@ -18,17 +18,27 @@ const (
 )
 
 type Config struct {
-	Repository   string   `yaml:"repository"`
-	Path         string   `yaml:"path"`
-	SyncOnAction bool     `yaml:"syncOnAction"`
-	Mode         string   `yaml:"mode"`
-	IgnoredFiles []string `yaml:"ignoredFiles"`
+	Repository   string            `yaml:"repository"`
+	Path         string            `yaml:"path"`
+	SyncOnAction bool              `yaml:"syncOnAction"`
+	Mode         string            `yaml:"mode"`
+	IgnoredFiles []string          `yaml:"ignoredFiles"`
+	FilesMapping map[string]string `yaml:"files"`
 }
 
 const StorageFileName = "_storage.json"
 
 func (config Config) GetStoragePath() string {
 	return path.Join(config.Path, StorageFileName)
+}
+
+func (config Config) FindFile(path string) (string, error) {
+	for file, p := range config.FilesMapping {
+		if p == path {
+			return file, nil
+		}
+	}
+	return "", errors.New("cannot find file")
 }
 
 func GetConfig() (config Config, err error) {

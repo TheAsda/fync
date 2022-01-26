@@ -21,12 +21,11 @@ func HandleAdd(context *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	id, err := getId(fullPath, context.String("name"))
+	file, err := getFile(fullPath, context.String("name"))
 	if err != nil {
 		return err
 	}
 	utils.CheckInitialization()
-	file := storage.File{ID: id, Path: fullPath}
 	if e := container.Call(func(
 		storage *storage.Storage,
 		filesProcessor files_processor.FilesProcessor,
@@ -36,7 +35,7 @@ func HandleAdd(context *cli.Context) error {
 		if err != nil {
 			return
 		}
-		err = filesProcessor.Add(file)
+		err = filesProcessor.Add(file, fullPath)
 		if err != nil {
 			return
 		}
@@ -47,18 +46,18 @@ func HandleAdd(context *cli.Context) error {
 	return err
 }
 
-func getId(path string, name string) (string, error) {
+func getFile(path string, name string) (string, error) {
 	var storage *storage.Storage
 	if err := container.Resolve(&storage); err != nil {
 		panic(err)
 	}
-	var id string
+	var file string
 	if len(name) != 0 {
-		id = name
+		file = name
 	} else if name := filepath.Base(path); !storage.Exists(name) {
-		id = filepath.Base(name)
+		file = filepath.Base(name)
 	} else {
 		return "", errors.New("file name already taken, please specify custom name")
 	}
-	return id, nil
+	return file, nil
 }

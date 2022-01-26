@@ -9,6 +9,6 @@ type FilesProcessorBase struct {
 	config config.Config
 }
 
-func (processor FilesProcessorBase) getIdPath(id string) string {
+func (processor FilesProcessorBase) getFilePath(id string) string {
 	return path.Join(processor.config.Path, id)
 }

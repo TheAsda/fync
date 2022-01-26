@@ -3,7 +3,6 @@ package files_processor
 import (
 	"os"
 	"theasda/fync/pkg/config"
-	"theasda/fync/pkg/storage"
 
 	"github.com/sirupsen/logrus"
 )
@@ -20,16 +19,16 @@ func NewSymlinkProcessor(config config.Config) *SymlinkProcessor {
 	}
 }
 
-func (sp *SymlinkProcessor) Add(file storage.File) error {
+func (sp *SymlinkProcessor) Add(file string, path string) error {
 	logrus.Debug("Creating symlink")
-	return os.Symlink(file.Path, sp.FilesProcessorBase.getIdPath(file.ID))
+	return os.Symlink(path, sp.FilesProcessorBase.getFilePath(file))
 }
 
-func (sp *SymlinkProcessor) Remove(file storage.File) error {
+func (sp *SymlinkProcessor) Remove(file string) error {
 	logrus.Debug("Removing symlink")
-	return os.Remove(sp.FilesProcessorBase.getIdPath(file.ID))
+	return os.Remove(sp.FilesProcessorBase.getFilePath(file))
 }
 
-func (sp *SymlinkProcessor) Update(files []storage.File) error {
+func (sp *SymlinkProcessor) Update(files map[string]string) error {
 	return nil
 }
