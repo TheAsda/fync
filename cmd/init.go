@@ -89,5 +89,6 @@ func PromptConfig() (lib.Config, error) {
 		Path:         absPath,
 		SyncOnAction: syncOnAction == "yes",
 		Mode:         mode,
+		IgnoredFiles: []string{},
 	}, nil
 }

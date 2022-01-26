@@ -17,10 +17,11 @@ const (
 )
 
 type Config struct {
-	Repository   string `yaml:"repository"`
-	Path         string `yaml:"path"`
-	SyncOnAction bool   `yaml:"syncOnAction"`
-	Mode         string `yaml:"mode"`
+	Repository   string   `yaml:"repository"`
+	Path         string   `yaml:"path"`
+	SyncOnAction bool     `yaml:"syncOnAction"`
+	Mode         string   `yaml:"mode"`
+	IgnoredFiles []string `yaml:"ignoredFiles"`
 }
 
 func (config Config) GetFilesPath() string {
