@@ -12,5 +12,5 @@ func CopyFile(from string, to string) error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(to, data, 0644)
+	return ioutil.WriteFile(to, data, 0777)
 }

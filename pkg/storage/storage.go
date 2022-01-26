@@ -20,7 +20,8 @@ func NewStorage(config config.Config) (*Storage, error) {
 	if !utils.FileExists(config.GetStoragePath()) {
 		logrus.Debug("Storage path does not exist using empty storage")
 		return &Storage{
-			Files: []string{},
+			config: config,
+			Files:  []string{},
 		}, nil
 	}
 	b, err := ioutil.ReadFile(config.GetStoragePath())
@@ -29,16 +30,17 @@ func NewStorage(config config.Config) (*Storage, error) {
 	}
 	var storage Storage
 	err = json.Unmarshal(b, &storage)
+	storage.config = config
 	return &storage, err
 }
 
 func (s *Storage) save() error {
 	logrus.Debug("Saving storage")
-	b, err := json.Marshal(s.Files)
+	b, err := json.Marshal(s)
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(s.config.GetStoragePath(), b, 0644)
+	return ioutil.WriteFile(s.config.GetStoragePath(), b, 0777)
 }
 
 func (s *Storage) remove(index int) {

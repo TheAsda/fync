@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 	"path/filepath"
+	c "theasda/fync/pkg/config"
 	"theasda/fync/pkg/files_processor"
 	"theasda/fync/pkg/repo"
 	"theasda/fync/pkg/storage"
@@ -27,10 +28,16 @@ func HandleAdd(context *cli.Context) error {
 	}
 	utils.CheckInitialization()
 	if e := container.Call(func(
+		config c.Config,
 		storage *storage.Storage,
 		filesProcessor files_processor.FilesProcessor,
 		repo *repo.Repo,
 	) {
+		config.FilesMapping[file] = fullPath
+		err = c.SaveConfig(config)
+		if err != nil {
+			return
+		}
 		err = storage.Add(file)
 		if err != nil {
 			return

@@ -60,5 +60,5 @@ func SaveConfig(config Config) error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(ConfigFile, bytes, 0644)
+	return ioutil.WriteFile(ConfigFile, bytes, 0777)
 }

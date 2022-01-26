@@ -40,7 +40,7 @@ func (repo Repo) Exists() bool {
 
 func (repo Repo) Clone() error {
 	logrus.Debug("Cloning repository")
-	if err := os.MkdirAll(repo.config.Path, 0644); err != nil {
+	if err := os.MkdirAll(repo.config.Path, 0777); err != nil {
 		return err
 	}
 	_, err := repo.runCommand("git", "clone", repo.config.Repository, ".")
@@ -95,8 +95,8 @@ func (repo Repo) getCommitMessage() (string, error) {
 }
 
 func (repo Repo) runCommand(name string, arg ...string) (stdout bytes.Buffer, err error) {
-	cmd := exec.Command("git", "status", "-sb")
-	cmd.Path = repo.config.Path
+	cmd := exec.Command(name, arg...)
+	cmd.Dir = repo.config.Path
 	cmd.Stdout = &stdout
 	err = cmd.Run()
 	return stdout, err
