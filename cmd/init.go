@@ -2,35 +2,35 @@ package cmd
 
 import (
 	"errors"
-	"path/filepath"
-	"theasda/fync/lib"
+	с "theasda/fync/pkg/config"
+	r "theasda/fync/pkg/repo"
 
 	"github.com/golobby/container/v3"
-	"github.com/manifoldco/promptui"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )
 
 func HandleInit(context *cli.Context) error {
-	var config *lib.Config
-	var repo *lib.Repo
-
-	if e := container.Resolve(&config); e != nil {
+	var initialized bool
+	if e := container.NamedResolve(&initialized, "initialized"); e != nil {
 		panic(e)
 	}
-	if config == nil {
-		newConfig, err := PromptConfig()
+
+	var repo *r.Repo
+	if initialized {
+		if e := container.Resolve(&repo); e != nil {
+			panic(e)
+		}
+	} else {
+		config, err := с.PromptConfig()
 		if err != nil {
 			return err
 		}
-		if err = lib.SaveConfig(newConfig); err != nil {
+		err = с.SaveConfig(config)
+		if err != nil {
 			return err
 		}
-		repo = lib.NewRepo(newConfig)
-	} else {
-		if err := container.Resolve(&repo); err != nil {
-			panic(err)
-		}
+		repo = r.NewRepo(config)
 	}
 	if repo.Exists() {
 		return errors.New("repository already initialized")
@@ -38,57 +38,6 @@ func HandleInit(context *cli.Context) error {
 	if err := repo.Clone(); err != nil {
 		return err
 	}
-	logrus.Info("Init completed")
+	logrus.Info("Initialization completed")
 	return nil
-}
-
-func PromptConfig() (lib.Config, error) {
-	repositoryPrompt := promptui.Prompt{
-		Label:       "Git repository",
-		HideEntered: true,
-	}
-	pathPrompt := promptui.Prompt{
-		Label:       "Path where local repository will be placed",
-		HideEntered: true,
-	}
-	syncOnActionPrompt := promptui.Select{
-		Label:        "Sync on action",
-		Items:        []string{"yes", "no"},
-		HideSelected: true,
-	}
-	modePrompt := promptui.Select{
-		Label:        "Mode",
-		Items:        []string{lib.SymlinkMode, lib.CopyMode},
-		HideSelected: true,
-	}
-
-	repository, err := repositoryPrompt.Run()
-	if err != nil {
-		return lib.Config{}, err
-	}
-	path, err := pathPrompt.Run()
-	if err != nil {
-		return lib.Config{}, err
-	}
-	_, syncOnAction, err := syncOnActionPrompt.Run()
-	if err != nil {
-		return lib.Config{}, err
-	}
-	_, mode, err := modePrompt.Run()
-	if err != nil {
-		return lib.Config{}, err
-	}
-
-	absPath, err := filepath.Abs(path)
-	if err != nil {
-		return lib.Config{}, err
-	}
-
-	return lib.Config{
-		Repository:   repository,
-		Path:         absPath,
-		SyncOnAction: syncOnAction == "yes",
-		Mode:         mode,
-		IgnoredFiles: []string{},
-	}, nil
 }

@@ -1,20 +1,27 @@
 package cmd
 
 import (
-	"theasda/fync/lib"
+	"theasda/fync/pkg/files_processor"
+	"theasda/fync/pkg/repo"
+	"theasda/fync/pkg/storage"
+	"theasda/fync/pkg/utils"
 
 	"github.com/golobby/container/v3"
 	"github.com/urfave/cli/v2"
 )
 
 func HandleSync(context *cli.Context) error {
-	if err := container.Call(func(filesDb *lib.FilesDB, filesProcessor lib.FilesProcessor) error {
-		return filesProcessor.Update(filesDb.GetAll())
-	}); err != nil {
-		return err
-	}
-	var err error = nil
-	if e := container.Call(func(repo *lib.Repo) {
+	utils.CheckInitialization()
+	var err error
+	if e := container.Call(func(
+		storage *storage.Storage,
+		filesProcessor files_processor.FilesProcessor,
+		repo *repo.Repo,
+	) {
+		err = filesProcessor.Update(storage.Files)
+		if err != nil {
+			return
+		}
 		err = repo.UpdateRepo()
 	}); e != nil {
 		panic(e)

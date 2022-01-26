@@ -3,7 +3,10 @@ package cmd
 import (
 	"errors"
 	"path/filepath"
-	"theasda/fync/lib"
+	"theasda/fync/pkg/files_processor"
+	"theasda/fync/pkg/repo"
+	"theasda/fync/pkg/storage"
+	"theasda/fync/pkg/utils"
 
 	"github.com/golobby/container/v3"
 	"github.com/urfave/cli/v2"
@@ -22,40 +25,37 @@ func HandleAdd(context *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	file := lib.File{ID: id, Path: fullPath}
-	if e := container.Call(func(filesDb *lib.FilesDB) {
-		err = filesDb.Add(file)
-	}); e != nil {
-		panic(e)
-	}
-	if err != nil {
-		return err
-	}
-	if e := container.Call(func(filesProcessor lib.FilesProcessor) {
+	utils.CheckInitialization()
+	file := storage.File{ID: id, Path: fullPath}
+	if e := container.Call(func(
+		storage *storage.Storage,
+		filesProcessor files_processor.FilesProcessor,
+		repo *repo.Repo,
+	) {
+		err = storage.Add(file)
+		if err != nil {
+			return
+		}
 		err = filesProcessor.Add(file)
-	}); e != nil {
-		panic(e)
-	}
-	if err != nil {
-		return err
-	}
-	if e := container.Call(func(repo *lib.Repo) {
+		if err != nil {
+			return
+		}
 		err = repo.UpdateRepo()
 	}); e != nil {
-		return e
+		panic(e)
 	}
 	return err
 }
 
 func getId(path string, name string) (string, error) {
-	var filesDb *lib.FilesDB
-	if err := container.Resolve(&filesDb); err != nil {
+	var storage *storage.Storage
+	if err := container.Resolve(&storage); err != nil {
 		panic(err)
 	}
 	var id string
 	if len(name) != 0 {
 		id = name
-	} else if name := filepath.Base(path); !filesDb.Exists(name) {
+	} else if name := filepath.Base(path); !storage.Exists(name) {
 		id = filepath.Base(name)
 	} else {
 		return "", errors.New("file name already taken, please specify custom name")

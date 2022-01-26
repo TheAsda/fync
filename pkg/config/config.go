@@ -1,9 +1,10 @@
-package lib
+package config
 
 import (
 	"errors"
 	"io/ioutil"
 	"path"
+	"theasda/fync/pkg/utils"
 
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
@@ -24,13 +25,15 @@ type Config struct {
 	IgnoredFiles []string `yaml:"ignoredFiles"`
 }
 
-func (config Config) GetFilesPath() string {
-	return path.Join(config.Path, FilesCollectionName)
+const StorageFileName = "_storage.json"
+
+func (config Config) GetStoragePath() string {
+	return path.Join(config.Path, StorageFileName)
 }
 
 func GetConfig() (config Config, err error) {
 	logrus.Debug("Getting config")
-	if !FileExists(ConfigFile) {
+	if !utils.FileExists(ConfigFile) {
 		return Config{}, errors.New("Config does not exist")
 	}
 	bytes, err := ioutil.ReadFile(ConfigFile)
