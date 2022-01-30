@@ -3,7 +3,6 @@ package config
 import (
 	"errors"
 	"io/ioutil"
-	"path"
 	"theasda/fync/pkg/utils"
 
 	"github.com/sirupsen/logrus"
@@ -24,12 +23,6 @@ type Config struct {
 	Mode         string            `yaml:"mode"`
 	IgnoredFiles []string          `yaml:"ignoredFiles"`
 	FilesMapping map[string]string `yaml:"files"`
-}
-
-const StorageFileName = "_storage.json"
-
-func (config Config) GetStoragePath() string {
-	return path.Join(config.Path, StorageFileName)
 }
 
 func (config Config) FindFile(path string) (string, error) {

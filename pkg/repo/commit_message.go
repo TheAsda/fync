@@ -3,7 +3,6 @@ package repo
 import (
 	"fmt"
 	"strings"
-	"theasda/fync/pkg/config"
 )
 
 func compileCommitMessage(addedFiles []string, modifiedFiles []string, deletedFiles []string) string {
@@ -27,25 +26,16 @@ func parseStatus(status string) (addedFiles []string, modifiedFiles []string, de
 	for _, l := range lines {
 		if strings.Index(l, "??") == 0 {
 			file := strings.ReplaceAll(l, "?? ", "")
-			if strings.Index(file, config.StorageFileName) == 0 || len(file) == 0 {
-				continue
-			}
 			addedFiles = append(addedFiles, file)
 			continue
 		}
 		if strings.Index(l, " D") == 0 {
 			file := strings.ReplaceAll(l, " D ", "")
-			if strings.Index(file, config.StorageFileName) == 0 || len(file) == 0 {
-				continue
-			}
 			deletedFiles = append(deletedFiles, file)
 			continue
 		}
 		if strings.Index(l, " M") == 0 {
 			file := strings.ReplaceAll(l, " M ", "")
-			if strings.Index(file, config.StorageFileName) == 0 || len(file) == 0 {
-				continue
-			}
 			modifiedFiles = append(modifiedFiles, file)
 			continue
 		}

@@ -32,3 +32,20 @@ func (sp *SymlinkProcessor) Remove(file string) error {
 func (sp *SymlinkProcessor) Update(files map[string]string) error {
 	return nil
 }
+
+func (sp *SymlinkProcessor) Exists(file string) bool {
+	files, err := sp.FilesProcessorBase.readDir()
+	if err != nil {
+		return false
+	}
+	for _, f := range files {
+		if f == file {
+			return true
+		}
+	}
+	return false
+}
+
+func (sp *SymlinkProcessor) Files() ([]string, error) {
+	return sp.FilesProcessorBase.readDir()
+}

@@ -6,7 +6,6 @@ import (
 	c "theasda/fync/pkg/config"
 	"theasda/fync/pkg/files_processor"
 	"theasda/fync/pkg/repo"
-	"theasda/fync/pkg/storage"
 	"theasda/fync/pkg/utils"
 
 	"github.com/golobby/container/v3"
@@ -29,16 +28,11 @@ func HandleAdd(context *cli.Context) error {
 	utils.CheckInitialization()
 	if e := container.Call(func(
 		config c.Config,
-		storage *storage.Storage,
 		filesProcessor files_processor.FilesProcessor,
 		repo *repo.Repo,
 	) {
 		config.FilesMapping[file] = fullPath
 		err = c.SaveConfig(config)
-		if err != nil {
-			return
-		}
-		err = storage.Add(file)
 		if err != nil {
 			return
 		}
@@ -54,14 +48,14 @@ func HandleAdd(context *cli.Context) error {
 }
 
 func getFile(path string, name string) (string, error) {
-	var storage *storage.Storage
-	if err := container.Resolve(&storage); err != nil {
+	var filesProcessor files_processor.FilesProcessor
+	if err := container.Resolve(&filesProcessor); err != nil {
 		panic(err)
 	}
 	var file string
 	if len(name) != 0 {
 		file = name
-	} else if name := filepath.Base(path); !storage.Exists(name) {
+	} else if name := filepath.Base(path); !filesProcessor.Exists(name) {
 		file = filepath.Base(name)
 	} else {
 		return "", errors.New("file name already taken, please specify custom name")

@@ -50,3 +50,20 @@ func (sp *CopyProcessor) Update(files map[string]string) error {
 	}
 	return nil
 }
+
+func (sp *CopyProcessor) Exists(file string) bool {
+	files, err := sp.FilesProcessorBase.readDir()
+	if err != nil {
+		return false
+	}
+	for _, f := range files {
+		if f == file {
+			return true
+		}
+	}
+	return false
+}
+
+func (sp *CopyProcessor) Files() ([]string, error) {
+	return sp.FilesProcessorBase.readDir()
+}

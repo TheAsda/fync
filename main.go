@@ -7,7 +7,6 @@ import (
 	c "theasda/fync/pkg/config"
 	"theasda/fync/pkg/files_processor"
 	"theasda/fync/pkg/repo"
-	"theasda/fync/pkg/storage"
 
 	"github.com/golobby/container/v3"
 	"github.com/sirupsen/logrus"
@@ -94,16 +93,6 @@ func initializeContainer() {
 
 	if e := container.Singleton(func() c.Config {
 		return config
-	}); e != nil {
-		panic(e)
-	}
-
-	if e := container.Singleton(func(config c.Config) *storage.Storage {
-		storage, err := storage.NewStorage(config)
-		if err != nil {
-			panic(err)
-		}
-		return storage
 	}); e != nil {
 		panic(e)
 	}

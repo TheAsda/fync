@@ -3,8 +3,8 @@ package cmd
 import (
 	"errors"
 	c "theasda/fync/pkg/config"
+	"theasda/fync/pkg/files_processor"
 	r "theasda/fync/pkg/repo"
-	"theasda/fync/pkg/storage"
 
 	"github.com/golobby/container/v3"
 	"github.com/sirupsen/logrus"
@@ -43,22 +43,28 @@ func HandleInit(context *cli.Context) error {
 		return err
 	}
 
-	storage, err := storage.NewStorage(config)
+	var err error
+	container.Call(func(filesProcessor files_processor.FilesProcessor) {
+		var files []string
+		files, err = filesProcessor.Files()
+		if err != nil {
+			return
+		}
+		if len(files) != 0 {
+			ignoredFiles, filesMapping, err := c.PromptFiles(files)
+			if err != nil {
+				return
+			}
+			config.IgnoredFiles = ignoredFiles
+			config.FilesMapping = filesMapping
+			err = c.SaveConfig(config)
+			if err != nil {
+				return
+			}
+		}
+	})
 	if err != nil {
 		return err
-	}
-
-	if len(storage.Files) != 0 {
-		ignoredFiles, filesMapping, err := c.PromptFiles(storage.Files)
-		if err != nil {
-			return err
-		}
-		config.IgnoredFiles = ignoredFiles
-		config.FilesMapping = filesMapping
-		err = c.SaveConfig(config)
-		if err != nil {
-			return err
-		}
 	}
 
 	logrus.Info("Initialization completed")

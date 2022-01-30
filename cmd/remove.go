@@ -6,7 +6,6 @@ import (
 	c "theasda/fync/pkg/config"
 	"theasda/fync/pkg/files_processor"
 	r "theasda/fync/pkg/repo"
-	"theasda/fync/pkg/storage"
 	"theasda/fync/pkg/utils"
 
 	"github.com/golobby/container/v3"
@@ -25,7 +24,6 @@ func HandleRemove(context *cli.Context) error {
 	}
 	if e := container.Call(func(
 		config c.Config,
-		storage *storage.Storage,
 		filesProcessor files_processor.FilesProcessor,
 		repo *r.Repo,
 	) {
@@ -35,10 +33,6 @@ func HandleRemove(context *cli.Context) error {
 			return
 		}
 		delete(config.FilesMapping, file)
-		err = storage.Remove(file)
-		if err != nil {
-			return
-		}
 		err = filesProcessor.Remove(file)
 		if err != nil {
 			return
