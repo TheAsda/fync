@@ -1,6 +1,7 @@
 package files_processor
 
 import (
+	"errors"
 	"os"
 	"theasda/fync/pkg/config"
 
@@ -31,6 +32,17 @@ func (sp *SymlinkProcessor) Remove(file string) error {
 
 func (sp *SymlinkProcessor) Update(files map[string]string) error {
 	return nil
+}
+
+func (sp *SymlinkProcessor) Load(files map[string]string) error {
+	return errors.New("Not implemented")
+	// for file, path := range files {
+	// 	err := sp.Add(file, path)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
+	// return nil
 }
 
 func (sp *SymlinkProcessor) Exists(file string) bool {

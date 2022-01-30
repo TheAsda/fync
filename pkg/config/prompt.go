@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/manifoldco/promptui"
+	"github.com/sirupsen/logrus"
 )
 
 func PromptConfig() (Config, error) {
@@ -59,22 +60,25 @@ func PromptConfig() (Config, error) {
 }
 
 func PromptFiles(files []string) (ignoredFiles []string, filesMapping map[string]string, err error) {
+	logrus.Debug("Prompting files")
 	filesMapping = make(map[string]string)
 	for _, file := range files {
 		ignoreFilePrompt := promptui.SelectWithAdd{
 			Label:    fmt.Sprintf("Would you like to ignore %s", file),
-			Items:    []string{"yes", "no"},
-			AddLabel: "Path",
+			Items:    []string{"yes"},
+			AddLabel: "Specify path",
 		}
 		_, answer, err := ignoreFilePrompt.Run()
 		if err != nil {
 			return []string{}, nil, err
 		}
 		if answer == "yes" {
+			logrus.Debugf("%s file is ignored", file)
 			ignoredFiles = append(ignoredFiles, file)
 			continue
 		}
 		absPath, err := filepath.Abs(answer)
+		logrus.Debugf("Map %s to %s ", file, absPath)
 		if err != nil {
 			return []string{}, nil, err
 		}

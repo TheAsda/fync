@@ -30,10 +30,7 @@ func HandleCheck(context *cli.Context) error {
 		for _, file := range files {
 			filePath := config.FilesMapping[file]
 
-			areEqual, err := utils.CompareFiles(path.Join(config.Path, file), filePath)
-			if err != nil {
-				return
-			}
+			areEqual := utils.CompareFiles(path.Join(config.Path, file), filePath)
 			if !areEqual {
 				changedFiles = append(changedFiles, file)
 			}

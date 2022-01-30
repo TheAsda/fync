@@ -35,16 +35,40 @@ func (sp *CopyProcessor) Update(files map[string]string) error {
 	for file, path := range files {
 		filePath := sp.FilesProcessorBase.getFilePath(file)
 		logrus.Debugf("Checking %s", file)
-		areEqual, err := utils.CompareFiles(filePath, path)
-		if err != nil {
-			return err
-		}
+		areEqual := utils.CompareFiles(filePath, path)
+
 		if areEqual {
 			logrus.Debug("File did not change")
 			continue
 		}
 		logrus.Debug("File changed")
 		if err := utils.CopyFile(path, filePath); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (sp *CopyProcessor) Load(files map[string]string) error {
+	for file, path := range files {
+		filePath := sp.FilesProcessorBase.getFilePath(file)
+		logrus.Debugf("Checking %s", file)
+		areEqual := utils.CompareFiles(filePath, path)
+		if areEqual {
+			logrus.Debug("Files are equal")
+			continue
+		}
+		logrus.Debug("Files are different")
+		if utils.FileExists(path) {
+			override, err := promptOverride(file, path)
+			if err != nil {
+				return err
+			}
+			if !override {
+				continue
+			}
+		}
+		if err := utils.CopyFile(filePath, path); err != nil {
 			return err
 		}
 	}

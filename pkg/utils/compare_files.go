@@ -5,14 +5,14 @@ import (
 	"io/ioutil"
 )
 
-func CompareFiles(first string, secord string) (bool, error) {
+func CompareFiles(first string, secord string) bool {
 	firstData, err := ioutil.ReadFile(first)
 	if err != nil {
-		return false, err
+		return false
 	}
 	secondData, err := ioutil.ReadFile(secord)
 	if err != nil {
-		return false, err
+		return false
 	}
-	return bytes.Equal(firstData, secondData), nil
+	return bytes.Equal(firstData, secondData)
 }

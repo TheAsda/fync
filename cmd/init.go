@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	c "theasda/fync/pkg/config"
 	"theasda/fync/pkg/files_processor"
 	r "theasda/fync/pkg/repo"
@@ -24,7 +25,8 @@ func HandleInit(context *cli.Context) error {
 			panic(e)
 		}
 	} else {
-		config, err := c.PromptConfig()
+		var err error
+		config, err = c.PromptConfig()
 		if err != nil {
 			return err
 		}
@@ -44,25 +46,43 @@ func HandleInit(context *cli.Context) error {
 	}
 
 	var err error
-	container.Call(func(filesProcessor files_processor.FilesProcessor) {
-		var files []string
-		files, err = filesProcessor.Files()
+	var filesProcessor files_processor.FilesProcessor
+	switch config.Mode {
+	case c.SymlinkMode:
+		logrus.Debug("Using Symlink Processor")
+		filesProcessor = files_processor.NewSymlinkProcessor(config)
+	case c.CopyMode:
+		logrus.Debug("Using Copy Processor")
+		filesProcessor = files_processor.NewCopyProcessor(config)
+	default:
+		panic(errors.New(fmt.Sprintf("Unknown mode \"%s\"", config.Mode)))
+	}
+
+	var files []string
+	files, err = filesProcessor.Files()
+	if err != nil {
+		return err
+	}
+
+	if len(files) != 0 {
+		logrus.Debugf("%d files in repository")
+		var ignoredFiles []string
+		var filesMapping map[string]string
+		ignoredFiles, filesMapping, err = c.PromptFiles(files)
 		if err != nil {
-			return
+			return err
 		}
-		if len(files) != 0 {
-			ignoredFiles, filesMapping, err := c.PromptFiles(files)
-			if err != nil {
-				return
-			}
-			config.IgnoredFiles = ignoredFiles
-			config.FilesMapping = filesMapping
-			err = c.SaveConfig(config)
-			if err != nil {
-				return
-			}
+		config.IgnoredFiles = ignoredFiles
+		config.FilesMapping = filesMapping
+		err = c.SaveConfig(config)
+		if err != nil {
+			return err
 		}
-	})
+		err = filesProcessor.Load(config.FilesMapping)
+	} else {
+		logrus.Debug("No files in repository")
+	}
+
 	if err != nil {
 		return err
 	}
