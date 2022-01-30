@@ -81,12 +81,19 @@ func (repo *Repo) UpdateRepo() error {
 	return repo.Push()
 }
 
-func (repo Repo) getCommitMessage() (string, error) {
+func (repo Repo) getStatus() (string, error) {
 	statusBuffer, err := repo.runCommand("git", "status", "-sb")
 	if err != nil {
 		return "", err
 	}
-	status := statusBuffer.String()
+	return statusBuffer.String(), nil
+}
+
+func (repo Repo) getCommitMessage() (string, error) {
+	status, err := repo.getStatus()
+	if err != nil {
+		return "", err
+	}
 	addedFiles, modifiedFiles, deletedFiles := parseStatus(status)
 	if len(addedFiles)+len(modifiedFiles)+len(deletedFiles) == 0 {
 		return "", errors.New("no changes in files")

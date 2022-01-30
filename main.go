@@ -57,6 +57,11 @@ func main() {
 				ArgsUsage: "[id or file]",
 				Action:    cmd.HandleRemove,
 			},
+			{
+				Name:   "check",
+				Usage:  "Show if files have changed",
+				Action: cmd.HandleCheck,
+			},
 		},
 		Before: func(c *cli.Context) error {
 			enableDebug := c.Bool("debug")

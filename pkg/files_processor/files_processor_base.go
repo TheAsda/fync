@@ -3,6 +3,7 @@ package files_processor
 import (
 	"io/ioutil"
 	"path"
+	"strings"
 	"theasda/fync/pkg/config"
 )
 
@@ -21,6 +22,9 @@ func (processor FilesProcessorBase) readDir() ([]string, error) {
 	}
 	var files []string
 	for _, fileInfo := range fileInfos {
+		if strings.Contains(fileInfo.Name(), ".git") {
+			continue
+		}
 		files = append(files, fileInfo.Name())
 	}
 	return files, err

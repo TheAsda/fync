@@ -24,6 +24,9 @@ func compileCommitMessage(addedFiles []string, modifiedFiles []string, deletedFi
 func parseStatus(status string) (addedFiles []string, modifiedFiles []string, deletedFiles []string) {
 	lines := strings.Split(status, "\n")
 	for _, l := range lines {
+		if strings.Contains(l, ".git") {
+			continue
+		}
 		if strings.Index(l, "??") == 0 {
 			file := strings.ReplaceAll(l, "?? ", "")
 			addedFiles = append(addedFiles, file)
