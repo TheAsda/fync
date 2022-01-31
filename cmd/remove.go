@@ -3,38 +3,41 @@ package cmd
 import (
 	"errors"
 	"path/filepath"
-	"theasda/fync/lib"
+	c "theasda/fync/pkg/config"
+	"theasda/fync/pkg/files_processor"
+	r "theasda/fync/pkg/repo"
+	"theasda/fync/pkg/utils"
 
 	"github.com/golobby/container/v3"
 	"github.com/urfave/cli/v2"
 )
 
 func HandleRemove(context *cli.Context) error {
-	fileOrId := context.Args().Get(0)
-	if len(fileOrId) == 0 {
+	utils.CheckInitialization()
+	file := context.Args().Get(0)
+	if len(file) == 0 {
 		return errors.New("file is not provided")
 	}
-	var filesDb *lib.FilesDB
-	if err := container.Resolve(&filesDb); err != nil {
-		panic(err)
-	}
-	filePath, err := filepath.Abs(fileOrId)
+	filePath, err := filepath.Abs(file)
 	if err != nil {
 		return err
 	}
-	file, err := filesDb.RemoveByPath(filePath)
-	if err != nil {
-		return err
-	}
-	if e := container.Call(func(filesProcessor lib.FilesProcessor) {
+	if e := container.Call(func(
+		config c.Config,
+		filesProcessor files_processor.FilesProcessor,
+		repo *r.Repo,
+	) {
+		file, err2 := config.FindFile(filePath)
+		if err2 != nil {
+			err = err2
+			return
+		}
+		delete(config.FilesMapping, file)
 		err = filesProcessor.Remove(file)
-	}); e != nil {
-		panic(e)
-	}
-	if err != nil {
-		return err
-	}
-	if e := container.Call(func(repo *lib.Repo) {
+		if err != nil {
+			return
+		}
+		c.SaveConfig(config)
 		err = repo.UpdateRepo()
 	}); e != nil {
 		panic(e)

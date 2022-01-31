@@ -3,7 +3,10 @@ package cmd
 import (
 	"errors"
 	"path/filepath"
-	"theasda/fync/lib"
+	c "theasda/fync/pkg/config"
+	"theasda/fync/pkg/files_processor"
+	"theasda/fync/pkg/repo"
+	"theasda/fync/pkg/utils"
 
 	"github.com/golobby/container/v3"
 	"github.com/urfave/cli/v2"
@@ -18,47 +21,44 @@ func HandleAdd(context *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	id, err := getId(fullPath, context.String("name"))
+	file, err := getFile(fullPath, context.String("name"))
 	if err != nil {
 		return err
 	}
-	file := lib.File{ID: id, Path: fullPath}
-	if e := container.Call(func(filesDb *lib.FilesDB) {
-		err = filesDb.Add(file)
-	}); e != nil {
-		panic(e)
-	}
-	if err != nil {
-		return err
-	}
-	if e := container.Call(func(filesProcessor lib.FilesProcessor) {
-		err = filesProcessor.Add(file)
-	}); e != nil {
-		panic(e)
-	}
-	if err != nil {
-		return err
-	}
-	if e := container.Call(func(repo *lib.Repo) {
+	utils.CheckInitialization()
+	if e := container.Call(func(
+		config c.Config,
+		filesProcessor files_processor.FilesProcessor,
+		repo *repo.Repo,
+	) {
+		config.FilesMapping[file] = fullPath
+		err = c.SaveConfig(config)
+		if err != nil {
+			return
+		}
+		err = filesProcessor.Add(file, fullPath)
+		if err != nil {
+			return
+		}
 		err = repo.UpdateRepo()
 	}); e != nil {
-		return e
+		panic(e)
 	}
 	return err
 }
 
-func getId(path string, name string) (string, error) {
-	var filesDb *lib.FilesDB
-	if err := container.Resolve(&filesDb); err != nil {
+func getFile(path string, name string) (string, error) {
+	var filesProcessor files_processor.FilesProcessor
+	if err := container.Resolve(&filesProcessor); err != nil {
 		panic(err)
 	}
-	var id string
+	var file string
 	if len(name) != 0 {
-		id = name
-	} else if name := filepath.Base(path); !filesDb.Exists(name) {
-		id = filepath.Base(name)
+		file = name
+	} else if name := filepath.Base(path); !filesProcessor.Exists(name) {
+		file = filepath.Base(name)
 	} else {
 		return "", errors.New("file name already taken, please specify custom name")
 	}
-	return id, nil
+	return file, nil
 }

@@ -1,9 +1,9 @@
-package lib
+package config
 
 import (
 	"errors"
 	"io/ioutil"
-	"path"
+	"theasda/fync/pkg/utils"
 
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
@@ -17,19 +17,26 @@ const (
 )
 
 type Config struct {
-	Repository   string `yaml:"repository"`
-	Path         string `yaml:"path"`
-	SyncOnAction bool   `yaml:"syncOnAction"`
-	Mode         string `yaml:"mode"`
+	Repository   string            `yaml:"repository"`
+	Path         string            `yaml:"path"`
+	SyncOnAction bool              `yaml:"syncOnAction"`
+	Mode         string            `yaml:"mode"`
+	IgnoredFiles []string          `yaml:"ignoredFiles"`
+	FilesMapping map[string]string `yaml:"files"`
 }
 
-func (config Config) GetFilesPath() string {
-	return path.Join(config.Path, FilesCollectionName)
+func (config Config) FindFile(path string) (string, error) {
+	for file, p := range config.FilesMapping {
+		if p == path {
+			return file, nil
+		}
+	}
+	return "", errors.New("cannot find file")
 }
 
 func GetConfig() (config Config, err error) {
 	logrus.Debug("Getting config")
-	if !FileExists(ConfigFile) {
+	if !utils.FileExists(ConfigFile) {
 		return Config{}, errors.New("Config does not exist")
 	}
 	bytes, err := ioutil.ReadFile(ConfigFile)
@@ -46,5 +53,5 @@ func SaveConfig(config Config) error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(ConfigFile, bytes, 0644)
+	return ioutil.WriteFile(ConfigFile, bytes, 0777)
 }
